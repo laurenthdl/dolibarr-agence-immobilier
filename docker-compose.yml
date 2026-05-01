@@ -1,0 +1,68 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:15
+    container_name: immo-postgres
+    environment:
+      POSTGRES_USER: dolibarr
+      POSTGRES_PASSWORD: dolibarr
+      POSTGRES_DB: dolibarr
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - immo-network
+
+  dolibarr:
+    image: dolibarr/dolibarr:23.0.2
+    container_name: immo-dolibarr
+    environment:
+      DOLI_DB_HOST: db
+      DOLI_DB_NAME: dolibarr
+      DOLI_DB_USER: dolibarr
+      DOLI_DB_PASSWORD: dolibarr
+      DOLI_DB_TYPE: pgsql
+      DOLI_URL_ROOT: http://localhost:8080
+      DOLI_ADMIN_LOGIN: admin
+      DOLI_ADMIN_PASSWORD: admin
+    volumes:
+      - dolibarr_data:/var/www/html/documents
+      - ./dolibarr-agence-immocore:/var/www/html/custom/immocore:ro
+      - ./dolibarr-agence-immobien:/var/www/html/custom/immobien:ro
+      - ./dolibarr-agence-immoclient:/var/www/html/custom/immoclient:ro
+      - ./dolibarr-agence-immolocatif:/var/www/html/custom/immolocatif:ro
+      - ./dolibarr-agence-immovente:/var/www/html/custom/immovente:ro
+      - ./dolibarr-agence-immoreno:/var/www/html/custom/immoreno:ro
+      - ./dolibarr-agence-immosyndic:/var/www/html/custom/immosyndic:ro
+      - ./dolibarr-agence-immomarche:/var/www/html/custom/immomarche:ro
+      - ./dolibarr-agence-immodjamo:/var/www/html/custom/immodjamo:ro
+      - ./dolibarr-agence-immorapports:/var/www/html/custom/immorapports:ro
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    networks:
+      - immo-network
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: immo-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@localhost.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8081:80"
+    depends_on:
+      - db
+    networks:
+      - immo-network
+
+volumes:
+  postgres_data:
+  dolibarr_data:
+
+networks:
+  immo-network:
+    driver: bridge
